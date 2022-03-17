@@ -165,3 +165,102 @@ mineTransactions miner parent txs =
       case buildProof tx tree of
         Nothing -> error "invalid merkle tree"
         Just proof -> TxReceipt blockHash proof
+
+-- | Pretty printing
+-- >>> runShows $ pprBlock block2
+-- hash: 0x0dbea380
+-- parent: 0x2f83ae40
+-- miner: 0x5303a90e
+-- root: 0x8abe9e15
+-- nonce: 3
+-- Tx# 0xbcc3e45a from: 0000000000 to: 0x5303a90e amount: 50000
+-- Tx# 0x085e2467 from: 0x790251e0 to: 0xb1011705 amount: 1000
+--
+-- >>> runShows $ pprListWith pprBlock [block0, block1, block2]
+-- hash: 0x70b432e0
+-- parent: 0000000000
+-- miner: 0x7203d9df
+-- root: 0x5b10bd5d
+-- nonce: 18
+-- Tx# 0x5b10bd5d from: 0000000000 to: 0x7203d9df amount: 50000
+-- hash: 0x2f83ae40
+-- parent: 0x70b432e0
+-- miner: 0x790251e0
+-- root: 0x5ea7a6f0
+-- nonce: 0
+-- Tx# 0x5ea7a6f0 from: 0000000000 to: 0x790251e0 amount: 50000
+-- hash: 0x0dbea380
+-- parent: 0x2f83ae40
+-- miner: 0x5303a90e
+-- root: 0x8abe9e15
+-- nonce: 3
+-- Tx# 0xbcc3e45a from: 0000000000 to: 0x5303a90e amount: 50000
+-- Tx# 0x085e2467 from: 0x790251e0 to: 0xb1011705 amount: 1000
+
+-- Now for VS Code:
+{-
+>>> error $ pprBlock block2 ""
+hash: 0x0dbea380
+parent: 0x2f83ae40
+miner: 0x5303a90e
+root: 0x8abe9e15
+nonce: 3
+Tx# 0xbcc3e45a from: 0000000000 to: 0x5303a90e amount: 50000
+Tx# 0x085e2467 from: 0x790251e0 to: 0xb1011705 amount: 1000
+
+>>> error $ pprListWith pprBlock [block0, block1, block2] ""
+hash: 0x70b432e0
+parent: 0000000000
+miner: 0x7203d9df
+root: 0x5b10bd5d
+nonce: 18
+Tx# 0x5b10bd5d from: 0000000000 to: 0x7203d9df amount: 50000
+hash: 0x2f83ae40
+parent: 0x70b432e0
+miner: 0x790251e0
+root: 0x5ea7a6f0
+nonce: 0
+Tx# 0x5ea7a6f0 from: 0000000000 to: 0x790251e0 amount: 50000
+hash: 0x0dbea380
+parent: 0x2f83ae40
+miner: 0x5303a90e
+root: 0x8abe9e15
+nonce: 3
+Tx# 0xbcc3e45a from: 0000000000 to: 0x5303a90e amount: 50000
+Tx# 0x085e2467 from: 0x790251e0 to: 0xb1011705 amount: 1000
+-}
+
+pprHeader :: BlockHeader -> ShowS
+pprHeader self@(BlockHeader parent cb txroot nonce) =
+  pprV
+    [ p ("hash", VH $ hash self),
+      p ("parent", VH $ parent),
+      p ("miner", VH $ txTo cb),
+      p ("root", VH txroot),
+      p ("nonce", nonce)
+    ]
+  where
+    p :: Show a => (String, a) -> ShowS
+    p = showsPair
+
+pprBlock :: Block -> ShowS
+pprBlock (Block header txs) =
+  pprHeader header
+    . showChar '\n'
+    . pprTxs (coinbase header : txs)
+
+pprTx :: Transaction -> ShowS
+pprTx tx@(Tx from to amount) =
+  pprH
+    [ showString "Tx#",
+      showsHash (hash tx),
+      p ("from", VH from),
+      p ("to", VH to),
+      p ("amount", amount)
+    ]
+  where
+    p :: Show a => (String, a) -> ShowS
+    p = showsPair
+
+pprTxs :: [Transaction] -> ShowS
+pprTxs = pprV . map pprTx
