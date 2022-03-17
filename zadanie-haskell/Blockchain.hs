@@ -112,3 +112,56 @@ verifyBlock b@(Block hdr txs) parentHash = do
   guard (txroot hdr == treeHash (buildTree (coinbase hdr : txs)))
   guard (validNonce hdr)
   return (hash b)
+
+-- | Transaction Receipts
+-- NB the following will not work in VS Code, see below
+-- >>> let charlie = hash "Charlie"
+-- >>> let (block, [receipt]) = mineTransactions charlie (hash block1) [tx1]
+-- >>> block
+-- BlockHeader {parent = 797158976, coinbase = Tx {txFrom = 0, txTo = 1392748814, txAmount = 50000}, txroot = 2327748117, nonce = 3}
+-- Tx {txFrom = 2030195168, txTo = 2969638661, txAmount = 1000}
+-- <BLANKLINE>
+--
+-- >>> receipt
+-- TxReceipt {txrBlock = 230597504, txrProof = MerkleProof (Tx {txFrom = 2030195168, txTo = 2969638661, txAmount = 1000}) >0xbcc3e45a}
+-- >>> validateReceipt receipt (blockHdr block)
+-- True
+
+-- For VS Code, we need to use the "error trick"
+{- Transaction Receipts
+>>> let charlie = hash "Charlie"
+>>> let (block, [receipt]) = mineTransactions charlie (hash block1) [tx1]
+>>> error $ show block
+BlockHeader {parent = 797158976, coinbase = Tx {txFrom = 0, txTo = 1392748814, txAmount = 50000}, txroot = 2327748117, nonce = 3}
+Tx {txFrom = 2030195168, txTo = 2969638661, txAmount = 1000}
+
+>>> receipt
+TxReceipt {txrBlock = 230597504, txrProof = MerkleProof (Tx {txFrom = 2030195168, txTo = 2969638661, txAmount = 1000}) >0xbcc3e45a}
+
+>>> validateReceipt receipt (blockHdr block)
+True
+-}
+
+data TransactionReceipt = TxReceipt
+  {txrBlock :: Hash, txrProof :: MerkleProof Transaction}
+  deriving (Show)
+
+validateReceipt :: TransactionReceipt -> BlockHeader -> Bool
+validateReceipt r hdr =
+  txrBlock r == hash hdr
+    && verifyProof (txroot hdr) (txrProof r)
+
+mineTransactions :: Miner -> Hash -> [Transaction] -> (Block, [TransactionReceipt])
+mineTransactions miner parent txs =
+  let block = mineBlock miner parent txs
+   in let blockHash = hash (blockHdr block)
+       in (block, makeReceipts block blockHash)
+  where
+    makeReceipts :: Block -> Hash -> [TransactionReceipt]
+    makeReceipts (Block hdr txs) blockHash =
+      let merkleTree = buildTree ((coinbase hdr) : txs)
+       in map (makeReceipt blockHash merkleTree) txs
+    makeReceipt blockHash tree tx =
+      case buildProof tx tree of
+        Nothing -> error "invalid merkle tree"
+        Just proof -> TxReceipt blockHash proof
