@@ -33,15 +33,20 @@ treeHash (Twig h _) = h
 treeHash (Node h _ _) = h
 
 drawTree :: Show a => Tree a -> String
-drawTree t = drawIndentedTree 0 t
+drawTree t = drawIndentedTree 0 t ""
   where
-    drawIndentedTree :: Show a => Int -> Tree a -> String
+    drawIndentedTree :: Show a => Int -> Tree a -> ShowS
     drawIndentedTree i t =
-      replicate (i * 2) ' ' ++ showHash (treeHash t) ++ drawTree' i t
-    drawTree' :: Show a => Int -> Tree a -> String
-    drawTree' _ (Leaf h a) = " " ++ show a ++ "\n"
-    drawTree' i (Twig h l) = " +\n" ++ drawIndentedTree (i + 1) l
-    drawTree' i (Node h l r) = " -\n" ++ drawIndentedTree (i + 1) l ++ drawIndentedTree (i + 1) r
+      showString (replicate (i * 2) ' ')
+        . showString (showHash (treeHash t))
+        . drawTree' i t
+    drawTree' :: Show a => Int -> Tree a -> ShowS
+    drawTree' _ (Leaf _ a) = showChar ' ' . showString (show a) . showChar '\n'
+    drawTree' i (Twig _ l) = showString " +\n" . drawIndentedTree (i + 1) l
+    drawTree' i (Node _ l r) =
+      showString " -\n"
+        . drawIndentedTree (i + 1) l
+        . drawIndentedTree (i + 1) r
 
 type MerklePath = [Either Hash Hash]
 
@@ -49,7 +54,11 @@ data MerkleProof a = MerkleProof a MerklePath
 
 instance Show a => Show (MerkleProof a) where
   showsPrec p (MerkleProof a path) =
-    showParen (p > 10) $ showString "MerkleProof " . showsPrec 11 a . showString " " . showString (showMerklePath path)
+    showParen (p > 10) $
+      showString "MerkleProof "
+        . showsPrec 11 a
+        . showString " "
+        . showString (showMerklePath path)
 
 buildProof :: Hashable a => a -> Tree a -> Maybe (MerkleProof a)
 buildProof v t =
