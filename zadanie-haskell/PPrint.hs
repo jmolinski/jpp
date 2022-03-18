@@ -1,3 +1,5 @@
+-- jm419502
+
 module PPrint where
 
 import Data.List
@@ -16,7 +18,7 @@ intercalateS :: ShowS -> [ShowS] -> ShowS
 intercalateS sep list = foldr (.) id $ intersperse sep list
 
 pprListWith :: (a -> ShowS) -> [a] -> ShowS
-pprListWith fn l = pprV $ map fn l 
+pprListWith fn l = pprV $ map fn l
 
 runShows :: ShowS -> IO ()
 runShows = putStrLn . ($ "")

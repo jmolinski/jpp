@@ -1,3 +1,5 @@
+-- jm419502
+
 module HashTree where
 
 import Hashable32
@@ -69,16 +71,11 @@ buildProof v t =
 
 merklePaths :: Hashable a => a -> Tree a -> [MerklePath]
 merklePaths v (Leaf h _) = [[] | hash v == h]
-merklePaths v (Twig _ (Leaf lh _)) = [[Left lh] | hash v == lh]
 merklePaths v (Twig _ t) = map (Left (treeHash t) :) (merklePaths v t)
-merklePaths v (Node _ (Leaf lh _) (Leaf rh _)) =
-  [[Left rh] | hash v == lh] ++ [[Right lh] | hash v == rh]
-merklePaths v (Node _ l (Leaf rh _)) =
-  (map (Left rh :) (merklePaths v l)) ++ [[Right (treeHash l)] | hash v == rh]
-merklePaths v (Node _ (Leaf lh _) r) =
-  [[Left (treeHash r)] | hash v == lh] ++ (map (Right lh :) (merklePaths v r))
 merklePaths v (Node _ l r) =
-  (map (Left (treeHash r) :) (merklePaths v l)) ++ (map (Right (treeHash l) :) (merklePaths v r))
+  let left = (map (Left (treeHash r) :) (merklePaths v l))
+   in let right = (map (Right (treeHash l) :) (merklePaths v r))
+       in left ++ right
 
 showMerklePath :: MerklePath -> [Char]
 showMerklePath [] = ""
