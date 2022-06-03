@@ -3,16 +3,17 @@
 
 % ---------------------------------------------------------------------------
 
-initBST([N|Ns], T0, T) :-
-    insertBST(N, T0, T1),
-    initBST(Ns, T1, T).
-initBST([], T, T).
+findBST(Key, t(kv(Key, Value), _, _), Value).
+findBST(Key, t(kv(NodeKey, _), L, _), _) :- 
+    Key @< NodeKey, findBST(Key, L, _).
+findBST(X, t(NodeKey, _, R), _) :- 
+    Key @> NodeKey, findBST(Key, R, _).
 
-findBST(X, t(X, _, _)).
-findBST(X, t(V, L, _)) :- 
-    X < V, findBST(X, L).
-findBST(X, t(V, _, R)) :- 
-    X > V, findBST(X, R).
+memberBST(X, t(X, _, _)).
+memberBST(X, t(V, L, _)) :- 
+    X @< V, memberBST(X, L).
+memberBST(X, t(V, _, R)) :- 
+    X @> V, memberBST(X, R).
 
 insertBST(I, nil, t(I, nil, nil)).
 insertBST(I, t(X, L, R), t(Y, P, Q)) :-
@@ -25,16 +26,21 @@ insertBST(I, t(X, L, R), t(Y, P, Q)) :-
     ;   (P, Y, Q) = (L, X, R)  
     ).
 
-deleteBST(V, t(V, nil, R), R).
-deleteBST(V, t(V, L, nil), L).
-deleteBST(V, t(NVal, nil, nil), t(NVal, nil, nil)) :- 
-    V \= NVal.
-deleteBST(V, t(NVal, L, R), t(NVal, L, DRight)) :- 
-    V > NVal, deleteBST(V, R, DRight).
-deleteBST(V,t(NVal,L,R),t(NVal, DLeft, R)) :- 
-    V < NVal, deleteBST(V, L, DLeft).
-deleteBST(V, t(V, L, R), t(NewVal, L, DRight)) :- 
-    getLeftBST(R, NewVal), deleteBST(NewVal, R, DRight).
+initBST([], T, T).
+initBST([H|Tail], T0, T) :-
+    insertBST(H, T0, T1),
+    initBST(Tail, T1, T).
+
+%deleteBST(V, t(V, nil, R), R).
+%deleteBST(V, t(V, L, nil), L).
+%deleteBST(V, t(NVal, nil, nil), t(NVal, nil, nil)) :- 
+%    V \= NVal.
+%deleteBST(V, t(NVal, L, R), t(NVal, L, DRight)) :- 
+%    V > NVal, deleteBST(V, R, DRight).
+%deleteBST(V,t(NVal,L,R),t(NVal, DLeft, R)) :- 
+%    V < NVal, deleteBST(V, L, DLeft).
+%deleteBST(V, t(V, L, R), t(NewVal, L, DRight)) :- 
+%    getLeftBST(R, NewVal), deleteBST(NewVal, R, DRight).
 
 getLeftBST(t(V, nil, _), V).
 getLeftBST(t(_, L, _), NVal) :- 
@@ -44,25 +50,83 @@ getLeftBST(t(_, L, _), NVal) :-
 
 % `dfa(FunkcjaPrzejścia, StanPoczątkowy, ZbiórStanówAkceptujących)`
 
-% T  - funkcja przejścia
+% T  - funkcja przejścia = TF
 % Q0 - stan początkowy
 % F  - zbiór stanów akceptujących
 
 % przejście: fp(S1, C, S2)
 
+allMembers([], _).
+allMembers([H|T], X) :- 
+    member(H, X), allMembers(T, X).
+
+alphabetFromTF([], []).
+alphabetFromTF([fp(_, C, _)|FunTail], [C|AlphabetTail]) :- 
+    alphabetFromTF(FunTail, AlphabetTail).
+
+statesFromTF([], []).
+statesFromTF([fp(S1, _, S2)|FunTail], [S1, S2|StatesTail]) :- 
+    statesFromTF(FunTail, StatesTail).
+
+listUnique([], []).
+listUnique([Head | Tail], Result) :-
+    member(Head, Tail),
+    listUnique(Tail, Result).
+listUnique([Head | Tail], [Head | Result]) :-
+    listUnique(Tail, Result).
+
+isFunctionComplete(TF, Alphabet, States). % TODO
+
+dfaRepresentation(TF, Q0, F, Alphabet, States, repr(Q0, F, TF)). % TODO
 
 % correct(+Automat, -Reprezentacja)
-correct(dfa(T, Q0, F), R) :-
+correct(dfa(T, Q0, F), Representation) :-
     alphabetFromTF(T, Alphabet),
-    statesFromTF(T, States),
-    lists.head(Alphabet, _),          % Czy alfabet jest niepusty?
-    lists.member(Q0, States),         % Czy stan początkowy jest w zbiorze stanów?
+    statesFromTF(T, StatesWithDuplicates),
+    listUnique(StatesWithDuplicates, States),
+    % Czy alfabet jest niepusty?
+    lists.head(Alphabet, _),          
+    % Czy stan początkowy jest w zbiorze stanów?
+    member(Q0, States),         
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
-    lists.subtract(F, States, []).
+    allMembers(F, States),
+    % Czy funkcja przejścia jest całkowita?
+    isFunctionComplete(T, Alphabet, States),
+    dfaRepresentation(T, Q0, F, Alphabet, States, Representation).
 
 
+accept(State, repr(_, AcceptingStatesBST, _), []) :-
+    memberBST(State, AcceptingStatesBST).
 
+accept(State, repr(_, _, TransitionsBST), [Letter|Tail]) :-
+    findBST(k(State, Letter), TransitionsBST, NextState),
+    accept(NextState, repr(_, _, TransitionsBST), Tail).
 
+% accept(+Automat, ?Słowo)
+accept(A, S) :- 
+    correct(A, DFA),
+    DFA = repr(Q0, _, _),
+    accept(Q0, DFA, S).
+
+% empty(+Automat)
+empty(A) :- % TODO
+    correct(A, DFA). 
+
+% equal(+Automat1, +Automat2)
+equal(A1, A2) :-
+    subsetEq(A1, A2),
+    subsetEq(A2, A1). 
+
+complementDFA(A, Complement). % TODO
+intersectDFA(A, B, Intersection). % TODO
+
+% subsetEq(+Automat1, +Automat2)
+subsetEq(A1, A2) :-
+    correct(A1, DFA1),
+    correct(A2, DFA2),
+    complementDFA(DFA2, DFA2Complement),
+    intersectDFA(DFA1, DFA2Complement, Intersection),
+    empty(Intersection).
 
 
 % 1. funkcja jest całkowita (z każdego stanu wychodzi każda litera)
