@@ -79,13 +79,15 @@ isFunctionComplete(TF, Alphabet, States). % TODO
 
 dfaRepresentation(TF, Q0, F, Alphabet, States, repr(Q0, F, TF)). % TODO
 
+head([H|_], H).
+
 % correct(+Automat, -Reprezentacja)
 correct(dfa(T, Q0, F), Representation) :-
     alphabetFromTF(T, Alphabet),
     statesFromTF(T, StatesWithDuplicates),
     listUnique(StatesWithDuplicates, States),
     % Czy alfabet jest niepusty?
-    lists.head(Alphabet, _),          
+    head(Alphabet, _),          % TODO import module lists 
     % Czy stan początkowy jest w zbiorze stanów?
     member(Q0, States),         
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
