@@ -1,0 +1,94 @@
+# Examples from the task content.
+
+a11:
+start 1
+accept 2 1
+1 a 1
+1 b 2
+2 a 2
+2 b 1
+
+a12:
+start x
+accept x y
+x a y
+x b x
+y a x
+y b x
+
+a2:
+start 1
+accept 1
+1 a 2
+2 b 1
+1 b 3
+2 a 3
+3 b 3
+3 a 3
+
+a3:
+start 0
+accept 0
+0 a 1
+1 a 0
+
+a4:
+start x
+accept x
+x a y
+y a z
+z a x
+
+a5:
+start x
+accept x
+x a y
+y a z
+z a zz
+zz a x
+
+a6:
+start 1
+accept
+1 a 1
+1 b 2
+2 a 2
+2 b 1
+
+a7:
+start 1
+accept 3
+1 a 1
+1 b 2
+2 a 2
+2 b 1
+3 b 3
+3 a 3
+
+b1:
+start 1
+accept
+1 a 1
+1 a 1
+
+b2:
+start 1
+accept
+1 a 1
+1 a 2
+
+b3:
+start 1
+accept
+1 a 2
+
+b4:
+start 2
+accept
+1 a 1
+
+b5:
+start 1
+accept 1 2
+1 a 1
+
