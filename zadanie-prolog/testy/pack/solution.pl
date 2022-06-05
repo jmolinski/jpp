@@ -148,7 +148,7 @@ accept(State, dfaRepr(_, _, _, AcceptingStatesBST, _, _, _, _), []) :-
 
 accept(State, dfaRepr(_, _, _, _, TransitionsBST, _, _, _), [Letter|Tail]) :-
     findBST(k(State, Letter), TransitionsBST, NextState),
-    accept(NextState, repr(_, _, TransitionsBST), Tail).
+    accept(NextState, dfaRepr(_, _, _, _, TransitionsBST, _, _, _), Tail).
 
 % accept(+Automat, ?Słowo)
 accept(A, S) :- 
