@@ -103,10 +103,10 @@ tfToBST([fp(S1, C, S2) | TFTail], TransitionsBST) :-
     insertBST(kv(k(S1, C), S2), TransitionsBSTTail, TransitionsBST).
 
 % dfaRepresentation(+TF, +Q0, +F, +Alphabet, +States, -Representation).
-dfaRepresentation(TF, Q0, F, Alphabet, States, R) :-
+dfaRepresentation(TF, Q0, F, Alphabet, _, R) :-
     initBST(F, nil, AcceptingStatesBST),
     tfToBST(TF, TFBST),
-    R = dfaRepr(Q0, F, TF, AcceptingStatesBST, TFBST, x, x, x).
+    R = dfaRepr(Q0, F, TF, AcceptingStatesBST, TFBST, Alphabet, x, x).
 
 
 % correct(+Automat, -Reprezentacja)
