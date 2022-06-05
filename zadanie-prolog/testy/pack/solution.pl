@@ -18,7 +18,7 @@ example(b6, dfa([], [], [])).
 findBST(Key, t(kv(Key, Value), _, _), Value).
 findBST(Key, t(kv(NodeKey, _), L, _), _) :- 
     Key @< NodeKey, findBST(Key, L, _).
-findBST(X, t(NodeKey, _, R), _) :- 
+findBST(Key, t(kv(NodeKey, _), _, R), _) :- 
     Key @> NodeKey, findBST(Key, R, _).
 
 memberBST(X, t(X, _, _)).
