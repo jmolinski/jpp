@@ -1,8 +1,4 @@
 
-% :- use_module(library(lists)).
-
-% ---------------------------------------------------------------------------
-
 findBST(Key, t(kv(Key, Value), _, _), Value).
 findBST(Key, t(kv(NodeKey, _), L, _), _) :- 
     Key @< NodeKey, findBST(Key, L, _).
@@ -31,20 +27,6 @@ initBST([H|Tail], T0, T) :-
     insertBST(H, T0, T1),
     initBST(Tail, T1, T).
 
-%deleteBST(V, t(V, nil, R), R).
-%deleteBST(V, t(V, L, nil), L).
-%deleteBST(V, t(NVal, nil, nil), t(NVal, nil, nil)) :- 
-%    V \= NVal.
-%deleteBST(V, t(NVal, L, R), t(NVal, L, DRight)) :- 
-%    V > NVal, deleteBST(V, R, DRight).
-%deleteBST(V,t(NVal,L,R),t(NVal, DLeft, R)) :- 
-%    V < NVal, deleteBST(V, L, DLeft).
-%deleteBST(V, t(V, L, R), t(NewVal, L, DRight)) :- 
-%    getLeftBST(R, NewVal), deleteBST(NewVal, R, DRight).
-
-getLeftBST(t(V, nil, _), V).
-getLeftBST(t(_, L, _), NVal) :- 
-    getLeftBST(L, NVal).
 
 % -----------------------------------------------------------------------------
 
@@ -55,6 +37,8 @@ getLeftBST(t(_, L, _), NVal) :-
 % F  - zbiór stanów akceptujących
 
 % przejście: fp(S1, C, S2)
+
+head([H|_], H).
 
 allMembers([], _).
 allMembers([H|T], X) :- 
@@ -73,11 +57,29 @@ areListsEqualLength(L1, L2) :-
     length(L2, S2),
     S1 = S2.
 
-isFunctionComplete(TF, Alphabet, States). % TODO
+%outgoingTransitionsFromState(+TF, +State, -Outgoing).
+outgoingTransitionsFromState([], _, []).
+outgoingTransitionsFromState([fp(State, C, _)|TFunTail], State, [C|OutgoingTail]) :- 
+    outgoingTransitionsFromState(TFunTail, State, OutgoingTail).
+outgoingTransitionsFromState([_|TFunTail], State, OutgoingTail) :- 
+    outgoingTransitionsFromState(TFunTail, State, OutgoingTail).
+
+%outgoingTransitionsFromState(+TF, +State, +Alphabet).
+stateHasAllTransitions(TF, State, Alphabet) :-
+    outgoingTransitionsFromState(TF, State, Outgoing),
+    areListsEqualLength(Outgoing, Alphabet),
+    allMembers(Outgoing, Alphabet).
+
+%isFunctionComplete(+States, +Alphabet, +TF).
+isFunctionComplete([], _, _).
+
+% -----------------------------------------------------------------------------
+%                                  correct 
+% -----------------------------------------------------------------------------
 
 dfaRepresentation(TF, Q0, F, Alphabet, States, repr(Q0, F, TF)). % TODO
 
-head([H|_], H).
+
 
 % correct(+Automat, -Reprezentacja)
 correct(dfa(T, Q0, F), Representation) :-
@@ -96,9 +98,13 @@ correct(dfa(T, Q0, F), Representation) :-
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
     allMembers(F, States),
     % Czy funkcja przejścia jest całkowita?
-    isFunctionComplete(T, Alphabet, States),
+    % 6. liczba przejść == liczba stanów razy liczba liter TODO
+    isFunctionComplete(States, T, Alphabet),
     dfaRepresentation(T, Q0, F, Alphabet, States, Representation).
 
+% -----------------------------------------------------------------------------
+%                                  accept 
+% -----------------------------------------------------------------------------
 
 accept(State, repr(_, AcceptingStatesBST, _), []) :-
     memberBST(State, AcceptingStatesBST).
@@ -113,9 +119,17 @@ accept(A, S) :-
     DFA = repr(Q0, _, _),
     accept(Q0, DFA, S).
 
+% -----------------------------------------------------------------------------
+%                                  empty 
+% -----------------------------------------------------------------------------
+
 % empty(+Automat)
 empty(A) :- % TODO
     correct(A, DFA). 
+
+% -----------------------------------------------------------------------------
+%                                  part 2
+% -----------------------------------------------------------------------------
 
 % equal(+Automat1, +Automat2)
 equal(A1, A2) :-
@@ -133,11 +147,4 @@ subsetEq(A1, A2) :-
     intersectDFA(DFA1, DFA2Complement, Intersection),
     empty(Intersection).
 
-
-% 1. funkcja jest całkowita (z każdego stanu wychodzi każda litera)
-% 2. stanPoczatkowy jest stanem
-% 3. stanyAkceptujace sa stanami
-% 4. alfabet niepusty
-% 5. zbior stanow niepusty
-% 6. liczba przejść == liczba stanów razy liczba liter
 
