@@ -57,36 +57,48 @@ areListsEqualLength(L1, L2) :-
     length(L2, S2),
     S1 = S2.
 
-%outgoingTransitionsFromState(+TF, +State, -Outgoing).
+% outgoingTransitionsFromState(+TF, +State, -Outgoing).
 outgoingTransitionsFromState([], _, []).
 outgoingTransitionsFromState([fp(State, C, _)|TFunTail], State, [C|OutgoingTail]) :- 
     outgoingTransitionsFromState(TFunTail, State, OutgoingTail).
 outgoingTransitionsFromState([_|TFunTail], State, OutgoingTail) :- 
     outgoingTransitionsFromState(TFunTail, State, OutgoingTail).
 
-%outgoingTransitionsFromState(+TF, +State, +Alphabet).
+% outgoingTransitionsFromState(+TF, +State, +Alphabet).
 stateHasAllTransitions(TF, State, Alphabet) :-
     outgoingTransitionsFromState(TF, State, Outgoing),
     areListsEqualLength(Outgoing, Alphabet),
     allMembers(Outgoing, Alphabet).
 
-%isFunctionComplete(+States, +Alphabet, +TF).
+% isFunctionComplete(+States, +Alphabet, +TF).
 isFunctionComplete([], _, _).
+isFunctionComplete([S|StatesTail], Alphabet, TF) :-
+    stateHasAllTransitions(TF, S, Alphabet),
+    isFunctionComplete(StatesTail, Alphabet, TF).
 
 % -----------------------------------------------------------------------------
 %                                  correct 
 % -----------------------------------------------------------------------------
 
-dfaRepresentation(TF, Q0, F, Alphabet, States, repr(Q0, F, TF)). % TODO
+% tfToBST(+TF, -TransitionsBST)
+tfToBST([], nil).
+tfToBST([fp(S1, C, S2) | TFTail], TransitionsBST) :-
+    tfToBST(TFTail, TransitionsBSTTail),
+    insertBST(kv(k(S1, C), S2), TransitionsBSTTail, TransitionsBST).
 
+% dfaRepresentation(+TF, +Q0, +F, +Alphabet, +States, -Representation).
+dfaRepresentation(TF, Q0, F, Alphabet, States, R) :-
+    initBST(F, nil, AcceptingStatesBST),
+    tfToBST(TF, TFBST),
+    R = dfaRepr(Q0, F, TF, AcceptingStatesBST, TFBST, x, x, x).
 
 
 % correct(+Automat, -Reprezentacja)
-correct(dfa(T, Q0, F), Representation) :-
-    ground(dfa(T, Q0, F)),
-    alphabetFromTF(T, AlphabetWithDuplicates),
+correct(dfa(TF, Q0, F), Representation) :-
+    ground(dfa(TF, Q0, F)),
+    alphabetFromTF(TF, AlphabetWithDuplicates),
     sort(AlphabetWithDuplicates, Alphabet),
-    statesFromTF(T, StatesWithDuplicates),
+    statesFromTF(TF, StatesWithDuplicates),
     sort(StatesWithDuplicates, States),
     % Czy w zbiorze F nie ma powtórzeń?
     sort(F, AcceptingStates),
@@ -99,24 +111,24 @@ correct(dfa(T, Q0, F), Representation) :-
     allMembers(F, States),
     % Czy funkcja przejścia jest całkowita?
     % 6. liczba przejść == liczba stanów razy liczba liter TODO
-    isFunctionComplete(States, T, Alphabet),
-    dfaRepresentation(T, Q0, F, Alphabet, States, Representation).
+    isFunctionComplete(States, TF, Alphabet),
+    dfaRepresentation(TF, Q0, F, Alphabet, States, Representation).
 
 % -----------------------------------------------------------------------------
 %                                  accept 
 % -----------------------------------------------------------------------------
 
-accept(State, repr(_, AcceptingStatesBST, _), []) :-
+accept(State, dfaRepr(_, _, _, AcceptingStatesBST, _, _, _, _), []) :-
     memberBST(State, AcceptingStatesBST).
 
-accept(State, repr(_, _, TransitionsBST), [Letter|Tail]) :-
+accept(State, dfaRepr(_, _, _, _, TransitionsBST, _, _, _), [Letter|Tail]) :-
     findBST(k(State, Letter), TransitionsBST, NextState),
     accept(NextState, repr(_, _, TransitionsBST), Tail).
 
 % accept(+Automat, ?Słowo)
 accept(A, S) :- 
     correct(A, DFA),
-    DFA = repr(Q0, _, _),
+    DFA = dfaRepr(Q0, _, _, _, _, _, _, _),
     accept(Q0, DFA, S).
 
 % -----------------------------------------------------------------------------

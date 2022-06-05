@@ -5,7 +5,7 @@
 %test1 :- example(a11, A), example(a12, B), equal(A, B).
 %test2 :- example(a2, A), example(a11, B), subsetEq(A, B).
 %test3 :- example(a5, A), example(a3, B), subsetEq(A, B).
-test4 :- example(a6, A), empty(A).
+%test4 :- example(a6, A), empty(A).
 test5 :- example(a7, A), empty(A).
 test6 :- example(a2, A), accept(A, []).
 test7 :- example(a2, A), accept(A, [a,b]).
@@ -17,7 +17,7 @@ test9_b2 :- example(b2, A), correct(A, _).
 test9_b3 :- example(b3, A), correct(A, _).
 test9_b4 :- example(b4, A), correct(A, _).
 test9_b5 :- example(b5, A), correct(A, _).
-test10 :- example(a2, A), empty(A).
+%test10 :- example(a2, A), empty(A).
 %test11 :- example(a3, A), example(a4, B), equal(A, B).
 %test12 :- example(a4, A), example(a3, B), subsetEq(A, B).
 test13 :- example(a2, A), accept(A, [a]).
