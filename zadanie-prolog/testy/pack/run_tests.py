@@ -29,7 +29,7 @@ def parse_test_file(file_path):
                 continue
 
             if line.startswith('%py '):
-                blocks.append({'t': 'python', 'l': line_no, 'code': '(   ' + line[4:] + ')'})
+                blocks.append({'t': 'python', 'l': line_no, 'code': '    ' + line[4:], 'inline': True})
                 continue
             if line.startswith('%timeout '):
                 blocks.append({'t': 'timeout', 'value': int(line[len('%timeout '):])})
@@ -129,6 +129,7 @@ class TestRunner:
 
     def assign_results(self, name):
         self.do_result_check(name)
+        self.globals['result'] = []
         for k, v in self.solutions[name].items():
             self.globals[k] = v
 
@@ -136,12 +137,18 @@ class TestRunner:
         if self.should_expect == 'success':
             if self.solution_counts[name] <= 0:
                 self.fail_pred(name, 'did not succeed')
+        if self.should_expect == 'single_solution':
+            if self.solution_counts[name] != 1:
+                self.fail_pred(name, 'did not succeed with a single solution')
         if self.should_expect == 'fail':
             if self.solution_counts[name] > 0:
                 self.fail_pred(name, 'did not fail')
 
     def expect_success(self):
         self.should_expect = 'success'
+
+    def expect_single_solution(self):
+        self.should_expect = 'single_solution'
 
     def expect_fail(self):
         self.should_expect = 'fail'
@@ -162,6 +169,7 @@ def run_tests_in_file(file_path):
     runner = TestRunner(proc)
     runner.globals = {
         'expect_success': runner.expect_success,
+        'expect_single_solution': runner.expect_single_solution,
         'expect_fail': runner.expect_fail,
         'compare_word_sets': utils.compare_word_sets
     }
@@ -175,7 +183,11 @@ def run_tests_in_file(file_path):
             runner.wait_for_pred(pred_name)
         if blk['t'] == 'python':
             try:
-                code = compile('\n' * blk['l'] + blk['code'], file_path.absolute(), 'exec')
+                if 'inline' in blk:
+                    code_txt = '\n' * (blk['l'] - 1) + 'if True:\n' + blk['code']
+                else:
+                    code_txt = '\n' * blk['l'] + blk['code']
+                code = compile(code_txt, file_path.absolute(), 'exec')
                 exec(code, runner.globals, runner.globals)
             except Exception as e:
                 if current_pred is not None:

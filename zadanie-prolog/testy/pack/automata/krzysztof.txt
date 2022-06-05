@@ -1,0 +1,31 @@
+test1:
+start 1
+accept 2 3 4
+1 a 3
+1 b 2
+2 b 3
+2 a 4
+3 a 4
+3 b 5
+4 a 5
+4 b 5
+5 a 5
+5 b 5
+
+test2:
+start 1
+accept 2 3 4
+1 a 3
+1 b 2
+2 b 3
+2 a 4
+3 a 4
+3 b 5
+4 a 5
+4 b 5
+5 a 6
+5 b 6
+6 a 7
+6 b 7
+7 a 5
+7 b 5

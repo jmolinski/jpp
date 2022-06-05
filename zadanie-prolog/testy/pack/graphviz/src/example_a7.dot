@@ -12,4 +12,4 @@ digraph finite_state_machine {
 	2 -> 1 [label = "b"];
 	3 -> 3 [label = "b"];
 	3 -> 3 [label = "a"];
-}
+	nowhere [shape=point];	nowhere -> 1;}

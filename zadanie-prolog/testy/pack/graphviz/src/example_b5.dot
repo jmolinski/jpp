@@ -7,4 +7,4 @@ digraph finite_state_machine {
 	node [shape = doublecircle]; 2;
 	node [shape = circle];
 	1 -> 1 [label = "a"];
-}
+	nowhere [shape=point];	nowhere -> 1;}

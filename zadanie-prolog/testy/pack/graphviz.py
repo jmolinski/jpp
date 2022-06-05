@@ -34,5 +34,8 @@ for file_path in AUTOMATA_DIR.glob('*.txt'):
             f.write('	node [shape = circle];\n')
             for (t_from, t_label, t_to) in dfa.transitions:
                 f.write(f'	{t_from} -> {t_to} [label = "{t_label}"];\n')
+
+            f.write('	nowhere [shape=point];')
+            f.write('	nowhere -> ' + dfa.start_state + ';')
             f.write('}')
         subprocess.run(['dot', '-o', str(out_png_file), '-Tpng:gd', str(out_file)], check=True)

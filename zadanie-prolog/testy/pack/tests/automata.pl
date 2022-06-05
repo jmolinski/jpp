@@ -14,3 +14,20 @@ example(b2, dfa([fp(1, a, 1), fp(1, a, 2)], 1, [])).
 example(b3, dfa([fp(1, a, 2)], 1, [])).
 example(b4, dfa([fp(1, a, 1)], 2, [])).
 example(b5, dfa([fp(1, a, 1)], 1, [1, 2])).
+krzysztof(test1, dfa([fp(1, a, 3), fp(1, b, 2), fp(2, b, 3), fp(2, a, 4), fp(3, a, 4), fp(3, b, 5), fp(4, a, 5), fp(4, b, 5), fp(5, a, 5), fp(5, b, 5)], 1, [2, 3, 4])).
+krzysztof(test2, dfa([fp(1, a, 3), fp(1, b, 2), fp(2, b, 3), fp(2, a, 4), fp(3, a, 4), fp(3, b, 5), fp(4, a, 5), fp(4, b, 5), fp(5, a, 6), fp(5, b, 6), fp(6, a, 7), fp(6, b, 7), fp(7, a, 5), fp(7, b, 5)], 1, [2, 3, 4])).
+pawel(reverse_test_1, dfa([fp(1, a, 2), fp(2, a, 2)], 1, [2])).
+pawel(reverse_test_2, dfa([fp(1, a, 2), fp(2, a, 2), fp(3, a, 4), fp(4, a, 4)], 1, [2, 4])).
+pawel(simple_path_1, dfa([fp(1, a, 2), fp(2, a, 3), fp(3, a, 3)], 1, [2])).
+pawel(single_node, dfa([fp(1, a, 1)], 1, [1])).
+pawel(empty_alphabet, dfa([], 1, [])).
+pawel(finite_compute_1, dfa([fp(1, a, 2), fp(1, b, 3), fp(2, a, 2), fp(2, b, 2), fp(3, a, 2), fp(3, b, 2)], 1, [3])).
+pawel(finite_compute_2, dfa([fp(1, a, 3), fp(1, b, 2), fp(3, a, 3), fp(3, b, 3), fp(2, a, 3), fp(2, b, 3)], 1, [2])).
+pawel(finite_compute_3, dfa([fp(1, b, 2), fp(1, a, 3), fp(2, a, 2), fp(2, b, 2), fp(3, a, 2), fp(3, b, 2)], 1, [3])).
+pawel(alphabet_compare_1a, dfa([fp(1, a, 1)], 1, [1])).
+pawel(alphabet_compare_1b, dfa([fp(1, a, 1), fp(1, b, 1)], 1, [1])).
+pawel(simple_contain_1a, dfa([fp(1, a, 2), fp(2, a, 3), fp(3, a, 3)], 1, [2])).
+pawel(simple_contain_1b, dfa([fp(1, a, 2), fp(2, a, 2)], 1, [2])).
+pawel(state_before_start_1, dfa([fp(1, a, 2), fp(2, a, 3), fp(3, a, 4), fp(4, a, 4)], 2, [3])).
+pawel(state_before_start_2, dfa([fp(1, a, 2), fp(2, a, 3), fp(3, a, 4), fp(4, a, 4), fp(5, a, 2)], 2, [3])).
+pawel(state_before_start_3, dfa([fp(1, a, 2), fp(2, a, 3), fp(3, a, 4), fp(4, a, 4), fp(1, b, 1), fp(2, b, 3), fp(3, b, 4), fp(4, b, 4)], 2, [3])).

@@ -65,7 +65,7 @@ execution results are saved, parsed and available in the Python blocks under the
 errors in the Python execution will make the last interpreted test fail.
 Only the first 100 results are available in Python and the interpreter is set to time out after 100ms by default.
 
-In addition the following snippets can be used:
+In addition, the following snippets can be used:
 
 - Require all the following predicated to have at least a single solution:
 %py expect_success()
@@ -75,3 +75,18 @@ In addition the following snippets can be used:
 
 - Adjust the timeout to 1000ms (from the default 100ms, applies to all following predicates in the file):
 %timeout 1000
+
+Note that you can obviously also do things like %py print(result)
+
+
+~~~
+Developing locally
+
+The tests can be developed locally on a Linux system and only launched on students. To do this, please configure an SSH
+alias called 'mim'. You can do so by creating/editing ~/.ssh/config and adding:
+
+Host mim
+  HostName students.mimuw.edu.pl
+  User pp418369
+
+The tests will be automatically launched on the students system if sicstus can not be found locally.
