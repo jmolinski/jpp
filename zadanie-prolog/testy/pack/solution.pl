@@ -125,18 +125,18 @@ correct(dfa(TF, Q0, F), Representation) :-
     statesFromTF(TF, StatesWithDuplicates),
     sort(StatesWithDuplicates, States),
     % Czy w zbiorze F nie ma powtórzeń?
-    sort(F, AcceptingStates),
-    areListsEqualLength(F, AcceptingStates),
+    %sort(F, AcceptingStates),
+    %areListsEqualLength(F, AcceptingStates),
     % Czy alfabet jest niepusty?
-    head(Alphabet, _),
+    %head(Alphabet, _),
     % Czy stan początkowy jest w zbiorze stanów?
-    member(Q0, States),         
+    %member(Q0, States),         
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
-    allMembers(F, States),
+    %allMembers(F, States),
     % Czy funkcja przejścia moze być funkcją? liczba przejść == liczba stanów razy liczba liter TODO
-    isPossiblyFunction(TF, Alphabet, States),
+    %isPossiblyFunction(TF, Alphabet, States),
     % Czy funkcja przejścia jest całkowita?
-    isFunctionComplete(States, Alphabet, TF),
+    %isFunctionComplete(States, Alphabet, TF),
     dfaRepresentation(TF, Q0, F, Alphabet, States, Representation).
 
 % -----------------------------------------------------------------------------
@@ -152,7 +152,7 @@ accept(State, dfaRepr(_, _, _, _, TransitionsBST, _, _, _), [Letter|Tail]) :-
 
 % accept(+Automat, ?Słowo)
 accept(A, S) :- 
-    % correct(A, DFA),  TODO uncomment
+    correct(A, DFA),
     DFA = dfaRepr(Q0, _, _, _, _, _, _, _),
     accept(Q0, DFA, S).
 
