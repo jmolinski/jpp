@@ -125,13 +125,14 @@ correct(dfa(TF, Q0, F), Representation) :-
     %member(Q0, States),         
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
     %allMembers(F, States),
-    % Czy funkcja przejścia moze być funkcją? liczba przejść == liczba stanów razy liczba liter TODO
-    length(TF, TFLength),
-    length(States, StatesLength),
-    length(Alphabet, AlphabetLength),
-    TFLength is StatesLength * AlphabetLength,
     % Czy funkcja przejścia jest całkowita?
     isFunctionComplete(States, TF, Alphabet),
+    % Czy funkcja przejścia moze być funkcją? liczba przejść == liczba stanów razy liczba liter TODO
+    %length(TF, TFLength),
+    %length(States, StatesLength),
+    %length(Alphabet, AlphabetLength),
+    %TFLength is StatesLength * AlphabetLength,
+
     dfaRepresentation(TF, Q0, F, Alphabet, States, Representation).
 
 % -----------------------------------------------------------------------------
