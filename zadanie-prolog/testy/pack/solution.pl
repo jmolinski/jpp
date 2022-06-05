@@ -1,3 +1,10 @@
+example(m1, dfa([fp(1,a,1),fp(1,b,1)], 1, [])).
+
+
+
+example(m2, dfa([fp(1,a,2),fp(2,b,2),fp(1,b,1),fp(2,a,1)], 1, [1])).
+
+
 example(a11, dfa([fp(1,a,1),fp(1,b,2),fp(2,a,2),fp(2,b,1)], 1, [2,1])).
 example(a12, dfa([fp(x,a,y),fp(x,b,x),fp(y,a,x),fp(y,b,x)], x, [x,y])).
 example(a2, dfa([fp(1,a,2),fp(2,b,1),fp(1,b,3),fp(2,a,3),fp(3,b,3),fp(3,a,3)], 1, [1])).
@@ -16,10 +23,10 @@ example(b6, dfa([], [], [])).
 % ------------------------------------------------------------------------------
 
 findBST(Key, t(kv(Key, Value), _, _), Value).
-findBST(Key, t(kv(NodeKey, _), L, _), _) :- 
-    Key @< NodeKey, findBST(Key, L, _).
-findBST(Key, t(kv(NodeKey, _), _, R), _) :- 
-    Key @> NodeKey, findBST(Key, R, _).
+findBST(Key, t(kv(NodeKey, _), L, _), Value) :- 
+    Key @< NodeKey, findBST(Key, L, Value).
+findBST(Key, t(kv(NodeKey, _), _, R), Value) :- 
+    Key @> NodeKey, findBST(Key, R, Value).
 
 memberBST(X, t(X, _, _)).
 memberBST(X, t(V, L, _)) :- 
@@ -83,7 +90,6 @@ outgoingTransitionsFromState([_|TFunTail], State, OutgoingTail) :-
 % outgoingTransitionsFromState(+TF, +State, +Alphabet).
 stateHasAllTransitions(TF, State, Alphabet) :-
     outgoingTransitionsFromState(TF, State, Outgoing),
-    % !, TODO ODCIECIE?
     areListsEqualLength(Outgoing, Alphabet),
     allMembers(Outgoing, Alphabet).
 
@@ -114,7 +120,7 @@ tfToBST([fp(S1, C, S2) | TFTail], TransitionsBST) :-
 dfaRepresentation(TF, Q0, F, Alphabet, _, R) :-
     initBST(F, nil, AcceptingStatesBST),
     tfToBST(TF, TFBST),
-    R = dfaRepr(Q0, F, TF, AcceptingStatesBST, TFBST, Alphabet, x, x).
+    R = dfaRepr(Q0, F, AcceptingStatesBST, TFBST, Alphabet, x, x).
 
 
 % correct(+Automat, -Reprezentacja)
@@ -125,36 +131,46 @@ correct(dfa(TF, Q0, F), Representation) :-
     statesFromTF(TF, StatesWithDuplicates),
     sort(StatesWithDuplicates, States),
     % Czy w zbiorze F nie ma powtórzeń?
-    %sort(F, AcceptingStates),
-    %areListsEqualLength(F, AcceptingStates),
+    sort(F, AcceptingStates),
+    areListsEqualLength(F, AcceptingStates),
     % Czy alfabet jest niepusty?
-    %head(Alphabet, _),
+    head(Alphabet, _),
     % Czy stan początkowy jest w zbiorze stanów?
-    %member(Q0, States),         
+    member(Q0, States),         
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
-    %allMembers(F, States),
+    allMembers(F, States),
     % Czy funkcja przejścia moze być funkcją? liczba przejść == liczba stanów razy liczba liter TODO
-    %isPossiblyFunction(TF, Alphabet, States),
+    isPossiblyFunction(TF, Alphabet, States),
     % Czy funkcja przejścia jest całkowita?
-    %isFunctionComplete(States, Alphabet, TF),
+    isFunctionComplete(States, Alphabet, TF),
+    !, % TODO usunac moze
     dfaRepresentation(TF, Q0, F, Alphabet, States, Representation).
 
 % -----------------------------------------------------------------------------
 %                                  accept 
 % -----------------------------------------------------------------------------
 
-accept(State, dfaRepr(_, _, _, AcceptingStatesBST, _, _, _, _), []) :-
+accept([], State, dfaRepr(_, F, AcceptingStatesBST, _, _, _, _)) :-
     memberBST(State, AcceptingStatesBST).
 
-accept(State, dfaRepr(_, _, _, _, TransitionsBST, _, _, _), [Letter|Tail]) :-
+accept([Letter|Tail], State, DFA) :-
+    DFA = dfaRepr(_, F, AcceptingStatesBST, TransitionsBST, _, _, _),
+    accept(Tail, NextState, DFA),
+    findBST(k(State, Letter), TransitionsBST, NextState).
+
+acceptGround([], State, dfaRepr(_, _, AcceptingStatesBST, _, _, _, _)) :-
+    memberBST(State, AcceptingStatesBST).
+
+acceptGround([Letter|Tail], State, DFA) :-
+    DFA = dfaRepr(_, F, AcceptingStatesBST, TransitionsBST, _, _, _),
     findBST(k(State, Letter), TransitionsBST, NextState),
-    accept(NextState, dfaRepr(_, _, _, _, TransitionsBST, _, _, _), Tail).
+    acceptGround(Tail, NextState, DFA).
 
 % accept(+Automat, ?Słowo)
-accept(A, S) :- 
+accept(A, Word) :- 
     correct(A, DFA),
-    DFA = dfaRepr(Q0, _, _, _, _, _, _, _),
-    accept(Q0, DFA, S).
+    DFA = dfaRepr(Q0, _, _, _, _, _, _),
+    ( ground(Word) -> acceptGround(Word, Q0, DFA) ; accept(Word, Q0, DFA) ).
 
 % -----------------------------------------------------------------------------
 %                                  empty 
@@ -162,7 +178,7 @@ accept(A, S) :-
 
 % empty(+Automat)
 empty(A) :- % TODO
-    correct(A, DFA). 
+    accept(A, Var).
 
 % -----------------------------------------------------------------------------
 %                                  part 2
