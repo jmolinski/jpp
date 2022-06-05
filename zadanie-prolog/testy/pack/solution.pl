@@ -83,6 +83,7 @@ outgoingTransitionsFromState([_|TFunTail], State, OutgoingTail) :-
 % outgoingTransitionsFromState(+TF, +State, +Alphabet).
 stateHasAllTransitions(TF, State, Alphabet) :-
     outgoingTransitionsFromState(TF, State, Outgoing),
+    !,
     areListsEqualLength(Outgoing, Alphabet),
     allMembers(Outgoing, Alphabet).
 
