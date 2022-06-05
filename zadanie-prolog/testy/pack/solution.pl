@@ -1,4 +1,6 @@
 
+
+
 % -----------------------------------------------------------------------------
 %                                    BST 
 % -----------------------------------------------------------------------------
@@ -121,7 +123,7 @@ correct(dfa(TF, Q0, F), Representation) :-
 %                                  accept 
 % -----------------------------------------------------------------------------
 
-accept([], State, dfaRepr(_, F, AcceptingStatesBST, _, _, _, _)) :-
+accept([], State, dfaRepr(_, _, AcceptingStatesBST, _, _, _, _)) :-
     memberBST(State, AcceptingStatesBST).
 
 accept([Letter|Tail], State, DFA) :-
@@ -165,32 +167,67 @@ empty(A) :-
 %                                  subsetEq
 % -----------------------------------------------------------------------------
 
-% notAcceptingStates(+States, +AcceptingStatesBST, -NotAcceptingStatesBST)
+% notAcceptingStates(+States, +AcceptingStatesBST, -NotAcceptingStates)
+notAcceptingStates([], AcceptingStatesBST, []).
+
 notAcceptingStates([State|StatesTail], AcceptingStatesBST, NotAcceptingBST) :-
     memberBST(State, AcceptingStatesBST),
     notAcceptingStates(StatesTail, AcceptingStatesBST, NotAcceptingBST).
 
-notAcceptingStates([State|StatesTail], AcceptingStatesBST, NotAcceptingBST) :-
-    notAcceptingStates(StatesTail, AcceptingStatesBST, NotAcceptingBSTTail),
-    insertBST(State, NotAcceptingBSTTail, NotAcceptingBST).
+notAcceptingStates([State|StatesTail], AcceptingStatesBST, [State|NotAcceptingBSTTail]) :-
+    notAcceptingStates(StatesTail, AcceptingStatesBST, NotAcceptingBSTTail).
 
 % complementDFA(+Automata, -ComplementAutomata)
 complementDFA(DFA, Complement) :-
     DFA = dfaRepr(Q0, F, AcceptingStatesBST, TransitionsBST, Alphabet, _, States),
-    notAcceptingStates(States, AcceptingStatesBST, NotAcceptingStatesBST),
-    Complement = dfaRepr(Q0, F, NotAcceptingStatesBST, TransitionsBST, Alphabet, _, States).
+    notAcceptingStates(States, AcceptingStatesBST, NotAcceptingStates),
+    initBST(NotAcceptingStates, nil, NotAcceptingStatesBST),
+    Complement = dfaRepr(
+        Q0, NotAcceptingStates, NotAcceptingStatesBST, 
+        TransitionsBST, Alphabet, _, States
+    ).
+
+prodLists([], [], _, []).
+
+prodLists([], [_:F2Tail], L1, F_3) :-
+    prodLists(L1, F2Tail, L1, F_3).
+
+prodLists([X|F1Tail], [Y:F2Tail], L1, [tup(X, Y)|F_3BSTTail]) :-
+    prodLists(F1Tail, [Y:F2Tail], L1, F_3BSTTail).
+
+% tfToBST(+TF, -TransitionsBST)
+statesAlphabetProdAsBST([], nil).
+statesAlphabetProdAsBST([tup(tup(S1_1, S1_2), C) | TFTail], TransitionsBST1, TransitionsBST2, TransitionsBST) :-
+    statesAlphabetProdAsBST(TFTail, TransitionsBST1, TransitionsBST2, TransitionsBSTTail),
+    findBST(k(S1_1, C), TransitionsBST1, S2_1),
+    findBST(k(S1_2, C), TransitionsBST2, S2_2),
+    insertBST(kv(k(tup(S1_1, S1_2), C), tup(S2_1, S2_2)), TransitionsBSTTail, TransitionsBST).
+
 
 % complementDFA(+Automata, +Automata, -IntersectionAutomata)
 intersectDFA(A, B, Intersection) :-
-    A = dfaRepr(Q0_1, F_1, _, _, Alphabet, _, _),
-    B = dfaRepr(Q0_2, F_2, _, _, _, _, _),
+    A = dfaRepr(Q0_1, F_1, _, TransitionsBST1, Alphabet, _, States1),
+    B = dfaRepr(Q0_2, F_2, _, TransitionsBST2, _, _, States2),
     Q0 = tup(Q0_1, Q0_2),
-    F = tup(F_1, F_2). % TODO product
+    prodLists(F_1, F_2, F_1, FProd),
+    initBST(F_Itersect, nil, AcceptingStatesBST),
+    prodLists(States1, States2, States1, StatesProd),
+    prodLists(StatesProd, Alphabet, StatesProd, TFList),
+    statesAlphabetProdAsBST(TFList, TransitionsBST1, TransitionsBST2, TransitionsBST),
+
+    Intersection = dfaRepr(
+        Q0, FProd, AcceptingStatesBST, 
+        TransitionsBST, Alphabet, x, StatesProd
+    ).
 
 % subsetEq(+Automat1, +Automat2)
 subsetEq(A1, A2) :-
     correct(A1, DFA1),
     correct(A2, DFA2),
+    DFA1 = dfaRepr(_, _, _, _, Alphabet1, _, _),
+    DFA2 = dfaRepr(_, _, _, _, Alphabet2, _, _),
+    allMembers(Alphabet1, Alphabet2),
+    areListsEqualLength(Alphabet2, Alphabet1),
     complementDFA(DFA2, DFA2Complement),
     intersectDFA(DFA1, DFA2Complement, Intersection),
     empty(Intersection).
