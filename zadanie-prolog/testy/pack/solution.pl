@@ -29,10 +29,10 @@ memberBST(X, t(V, _, R)) :-
 
 insertBST(I, nil, t(I, nil, nil)).
 insertBST(I, t(X, L, R), t(Y, P, Q)) :-
-    (   I < X
+    (   I @< X
     ->  insertBST(I, L, U),
         (P, Y, Q) = (U, X, R)
-    ;   I > X
+    ;   I @> X
     ->  insertBST(I, R, U),
         (P, Y, Q) = (L, X, U)
     ;   (P, Y, Q) = (L, X, R)  
