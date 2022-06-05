@@ -124,7 +124,7 @@ correct(dfa(TF, Q0, F), Representation) :-
     % Czy stan początkowy jest w zbiorze stanów?
     member(Q0, States),         
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
-    allMembers(F, States),
+    %allMembers(F, States),
     % Czy funkcja przejścia moze być funkcją? liczba przejść == liczba stanów razy liczba liter TODO
     length(TF, TFLength),
     length(States, StatesLength),
