@@ -1,4 +1,8 @@
 
+% -----------------------------------------------------------------------------
+%                                    BST 
+% -----------------------------------------------------------------------------
+
 findBST(Key, t(kv(Key, Value), _, _), Value).
 findBST(Key, t(kv(NodeKey, _), L, _), Value) :- 
     Key @< NodeKey, findBST(Key, L, Value).
@@ -27,16 +31,9 @@ initBST([H|Tail], T0, T) :-
     insertBST(H, T0, T1),
     initBST(Tail, T1, T).
 
-
 % -----------------------------------------------------------------------------
-
-% `dfa(FunkcjaPrzejścia, StanPoczątkowy, ZbiórStanówAkceptujących)`
-
-% T  - funkcja przejścia = TF
-% Q0 - stan początkowy
-% F  - zbiór stanów akceptujących
-
-% przejście: fp(S1, C, S2)
+%                                  correct 
+% -----------------------------------------------------------------------------
 
 head([H|_], H).
 
@@ -83,9 +80,6 @@ isPossiblyFunction(TF, Alphabet, States) :-
     length(Alphabet, AlphabetLength),
     TFLength =:= StatesLength * AlphabetLength.
 
-% -----------------------------------------------------------------------------
-%                                  correct 
-% -----------------------------------------------------------------------------
 
 % tfToBST(+TF, -TransitionsBST)
 tfToBST([], nil).
