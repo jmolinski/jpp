@@ -83,7 +83,7 @@ outgoingTransitionsFromState([_|TFunTail], State, OutgoingTail) :-
 % outgoingTransitionsFromState(+TF, +State, +Alphabet).
 stateHasAllTransitions(TF, State, Alphabet) :-
     outgoingTransitionsFromState(TF, State, Outgoing),
-    !,
+    % !, TODO ODCIECIE?
     areListsEqualLength(Outgoing, Alphabet),
     allMembers(Outgoing, Alphabet).
 
@@ -152,7 +152,7 @@ accept(State, dfaRepr(_, _, _, _, TransitionsBST, _, _, _), [Letter|Tail]) :-
 
 % accept(+Automat, ?Słowo)
 accept(A, S) :- 
-    correct(A, DFA),
+    % correct(A, DFA),  TODO uncomment
     DFA = dfaRepr(Q0, _, _, _, _, _, _, _),
     accept(Q0, DFA, S).
 
