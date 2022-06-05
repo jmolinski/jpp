@@ -162,16 +162,30 @@ empty(A) :-
     \+ acceptingStateReachable(Q0, AcceptingStatesBST, TransitionsBST, _).
 
 % -----------------------------------------------------------------------------
-%                                  part 2
+%                                  subsetEq
 % -----------------------------------------------------------------------------
 
-% equal(+Automat1, +Automat2)
-equal(A1, A2) :-
-    subsetEq(A1, A2),
-    subsetEq(A2, A1). 
+% notAcceptingStates(+States, +AcceptingStatesBST, -NotAcceptingStatesBST)
+notAcceptingStates([State|StatesTail], AcceptingStatesBST, NotAcceptingBST) :-
+    memberBST(State, AcceptingStatesBST),
+    notAcceptingStates(StatesTail, AcceptingStatesBST, NotAcceptingBST).
 
-complementDFA(A, Complement). % TODO
-intersectDFA(A, B, Intersection). % TODO
+notAcceptingStates([State|StatesTail], AcceptingStatesBST, NotAcceptingBST) :-
+    notAcceptingStates(StatesTail, AcceptingStatesBST, NotAcceptingBSTTail),
+    insertBST(State, NotAcceptingBSTTail, NotAcceptingBST).
+
+% complementDFA(+Automata, -ComplementAutomata)
+complementDFA(DFA, Complement) :-
+    DFA = dfaRepr(Q0, F, AcceptingStatesBST, TransitionsBST, Alphabet, _, States),
+    notAcceptingStates(States, AcceptingStatesBST, NotAcceptingStatesBST),
+    Complement = dfaRepr(Q0, F, NotAcceptingStatesBST, TransitionsBST, Alphabet, _, States).
+
+% complementDFA(+Automata, +Automata, -IntersectionAutomata)
+intersectDFA(A, B, Intersection) :-
+    A = dfaRepr(Q0_1, F_1, _, _, Alphabet, _, _),
+    B = dfaRepr(Q0_2, F_2, _, _, _, _, _),
+    Q0 = tup(Q0_1, Q0_2),
+    F = tup(F_1, F_2). % TODO product
 
 % subsetEq(+Automat1, +Automat2)
 subsetEq(A1, A2) :-
@@ -181,4 +195,11 @@ subsetEq(A1, A2) :-
     intersectDFA(DFA1, DFA2Complement, Intersection),
     empty(Intersection).
 
+% -----------------------------------------------------------------------------
+%                                  equal
+% -----------------------------------------------------------------------------
 
+% equal(+Automat1, +Automat2)
+equal(A1, A2) :-
+    subsetEq(A1, A2),
+    subsetEq(A2, A1). 
