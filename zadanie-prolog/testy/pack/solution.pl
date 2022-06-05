@@ -1,5 +1,5 @@
 
-:- use_module(library(lists)).
+% :- use_module(library(lists)).
 
 % ---------------------------------------------------------------------------
 
@@ -68,12 +68,10 @@ statesFromTF([], []).
 statesFromTF([fp(S1, _, S2)|FunTail], [S1, S2|StatesTail]) :- 
     statesFromTF(FunTail, StatesTail).
 
-listUnique([], []).
-listUnique([Head | Tail], Result) :-
-    member(Head, Tail),
-    listUnique(Tail, Result).
-listUnique([Head | Tail], [Head | Result]) :-
-    listUnique(Tail, Result).
+areListsEqualLength(L1, L2) :-
+    length(L1, S1),
+    length(L2, S2),
+    S1 = S2.
 
 isFunctionComplete(TF, Alphabet, States). % TODO
 
@@ -83,11 +81,16 @@ head([H|_], H).
 
 % correct(+Automat, -Reprezentacja)
 correct(dfa(T, Q0, F), Representation) :-
-    alphabetFromTF(T, Alphabet),
+    ground(dfa(T, Q0, F)),
+    alphabetFromTF(T, AlphabetWithDuplicates),
+    sort(AlphabetWithDuplicates, Alphabet),
     statesFromTF(T, StatesWithDuplicates),
-    listUnique(StatesWithDuplicates, States),
+    sort(StatesWithDuplicates, States),
+    % Czy w zbiorze F nie ma powtórzeń?
+    sort(F, AcceptingStates),
+    areListsEqualLength(F, AcceptingStates),
     % Czy alfabet jest niepusty?
-    head(Alphabet, _),          % TODO import module lists 
+    head(Alphabet, _),
     % Czy stan początkowy jest w zbiorze stanów?
     member(Q0, States),         
     % Czy wszystkie stany akceptujące są w zbiorze stanów?
