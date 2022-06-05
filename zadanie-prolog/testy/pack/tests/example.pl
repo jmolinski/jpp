@@ -11,9 +11,9 @@ test6 :- example(a2, A), accept(A, []).
 test7 :- example(a2, A), accept(A, [a,b]).
 test8 :- example(a2, A), accept(A, [a,b,a,b]).
 
-test9_a11 := example(a11, A).
-test9_a2 := example(a2, A).
-test9_a7 := example(a7, A).
+test9_a11 :- example(a11, A), correct(A, _).
+test9_a2 :- example(a2, A), correct(A, _).
+test9_a7 :- example(a7, A), correct(A, _).
 
 
 
