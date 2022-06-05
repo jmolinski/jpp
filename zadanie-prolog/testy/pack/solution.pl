@@ -135,7 +135,7 @@ correct(dfa(TF, Q0, F), Representation) :-
     % Czy funkcja przejścia moze być funkcją? liczba przejść == liczba stanów razy liczba liter TODO
     isPossiblyFunction(TF, Alphabet, States),
     % Czy funkcja przejścia jest całkowita?
-    isFunctionComplete(States, TF, Alphabet),
+    isFunctionComplete(States, Alphabet, TF),
     dfaRepresentation(TF, Q0, F, Alphabet, States, Representation).
 
 % -----------------------------------------------------------------------------
