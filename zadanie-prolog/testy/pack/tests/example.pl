@@ -11,6 +11,12 @@ test6 :- example(a2, A), accept(A, []).
 test7 :- example(a2, A), accept(A, [a,b]).
 test8 :- example(a2, A), accept(A, [a,b,a,b]).
 
+test9_a11 := example(a11, A).
+test9_a2 := example(a2, A).
+test9_a7 := example(a7, A).
+
+
+
 %py expect_fail()
 test9_b1 :- example(b1, A), correct(A, _).
 test9_b2 :- example(b2, A), correct(A, _).
