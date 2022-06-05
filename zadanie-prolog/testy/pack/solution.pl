@@ -1,26 +1,3 @@
-example(m1, dfa([fp(1,a,1),fp(1,b,1)], 1, [])).
-
-
-
-example(m2, dfa([fp(1,a,2),fp(2,b,2),fp(1,b,1),fp(2,a,1)], 1, [1])).
-
-
-example(a11, dfa([fp(1,a,1),fp(1,b,2),fp(2,a,2),fp(2,b,1)], 1, [2,1])).
-example(a12, dfa([fp(x,a,y),fp(x,b,x),fp(y,a,x),fp(y,b,x)], x, [x,y])).
-example(a2, dfa([fp(1,a,2),fp(2,b,1),fp(1,b,3),fp(2,a,3),fp(3,b,3),fp(3,a,3)], 1, [1])).
-example(a3, dfa([fp(0,a,1),fp(1,a,0)], 0, [0])).
-example(a4, dfa([fp(x,a,y),fp(y,a,z),fp(z,a,x)], x, [x])).
-example(a5, dfa([fp(x,a,y),fp(y,a,z),fp(z,a,zz),fp(zz,a,x)], x, [x])).
-example(a6, dfa([fp(1,a,1),fp(1,b,2),fp(2,a,2),fp(2,b,1)], 1, [])).
-example(a7, dfa([fp(1,a,1),fp(1,b,2),fp(2,a,2),fp(2,b,1),fp(3,b,3),fp(3,a,3)], 1, [3])).
-example(b1, dfa([fp(1,a,1),fp(1,a,1)], 1, [])).
-example(b2, dfa([fp(1,a,1),fp(1,a,2)], 1, [])).
-example(b3, dfa([fp(1,a,2)], 1, [])).
-example(b4, dfa([fp(1,a,1)], 2, [])).
-example(b5, dfa([fp(1,a,1)], 1, [1,2])).
-example(b6, dfa([], [], [])).
-
-% ------------------------------------------------------------------------------
 
 findBST(Key, t(kv(Key, Value), _, _), Value).
 findBST(Key, t(kv(NodeKey, _), L, _), Value) :- 
@@ -117,10 +94,10 @@ tfToBST([fp(S1, C, S2) | TFTail], TransitionsBST) :-
     insertBST(kv(k(S1, C), S2), TransitionsBSTTail, TransitionsBST).
 
 % dfaRepresentation(+TF, +Q0, +F, +Alphabet, +States, -Representation).
-dfaRepresentation(TF, Q0, F, Alphabet, _, R) :-
+dfaRepresentation(TF, Q0, F, Alphabet, States, R) :-
     initBST(F, nil, AcceptingStatesBST),
     tfToBST(TF, TFBST),
-    R = dfaRepr(Q0, F, AcceptingStatesBST, TFBST, Alphabet, x, x).
+    R = dfaRepr(Q0, F, AcceptingStatesBST, TFBST, Alphabet, x, States).
 
 
 % correct(+Automat, -Reprezentacja)
@@ -154,7 +131,7 @@ accept([], State, dfaRepr(_, F, AcceptingStatesBST, _, _, _, _)) :-
     memberBST(State, AcceptingStatesBST).
 
 accept([Letter|Tail], State, DFA) :-
-    DFA = dfaRepr(_, F, AcceptingStatesBST, TransitionsBST, _, _, _),
+    DFA = dfaRepr(_, _, _, TransitionsBST, _, _, _),
     accept(Tail, NextState, DFA),
     findBST(k(State, Letter), TransitionsBST, NextState).
 
@@ -176,9 +153,19 @@ accept(A, Word) :-
 %                                  empty 
 % -----------------------------------------------------------------------------
 
+acceptingStateReachable(State, AcceptingStatesBST, _, _) :-
+    memberBST(State, AcceptingStatesBST).
+
+acceptingStateReachable(State, AcceptingStatesBST, TransitionsBST, VisitedStates) :-
+    \+ member(State, VisitedStates),
+    findBST(k(State, _), TransitionsBST, NextState),
+    acceptingStateReachable(NextState, AcceptingStatesBST, TransitionsBST, [State|VisitedStates]).
+
 % empty(+Automat)
-empty(A) :- % TODO
-    accept(A, Var).
+empty(A) :-
+    correct(A, DFA),
+    DFA = dfaRepr(Q0, _, AcceptingStatesBST, TransitionsBST, _, _, _),
+    \+ acceptingStateReachable(Q0, AcceptingStatesBST, TransitionsBST, _).
 
 % -----------------------------------------------------------------------------
 %                                  part 2
