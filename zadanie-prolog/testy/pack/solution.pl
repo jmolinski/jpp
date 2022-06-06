@@ -147,19 +147,45 @@ accept(A, Word) :-
 %                                  empty 
 % -----------------------------------------------------------------------------
 
-acceptingStateReachable(State, AcceptingStatesBST, _, _) :-
+% acceptingStateReachable(+State, +AcceptingStatesBST, +TransitionsBST, -VisitedStates)
+
+route(X, Y, R, TransitionsBST) :-
+    X = Y;
+    route(X, Y, [X], R, TransitionsBST).
+route(X, Y, _, [drive(X,Y)], TransitionsBST) :-
+    travel(X, Y, TransitionsBST).
+route(X, Y, Visited, [drive(X,Z)|R], TransitionsBST) :-
+    travel(X, Z, TransitionsBST),
+    \+ member(Z, Visited),
+    route(Z, Y,[Z|Visited], R, TransitionsBST).
+    %Z \= Y.
+travel(X, Y, TransitionsBST) :- 
+    findBST(k(X, _), TransitionsBST, Y).
+
+acceptingStateReachable(State, AcceptingStatesBST, _, []) :-
     memberBST(State, AcceptingStatesBST).
 
-acceptingStateReachable(State, AcceptingStatesBST, TransitionsBST, VisitedStates) :-
+acceptingStateReachable(State, AcceptingStatesBST, TransitionsBST, [State|VisitedStates]) :-
     \+ member(State, VisitedStates),
     findBST(k(State, _), TransitionsBST, NextState),
-    acceptingStateReachable(NextState, AcceptingStatesBST, TransitionsBST, [State|VisitedStates]).
+    acceptingStateReachable(NextState, AcceptingStatesBST, TransitionsBST, VisitedStates).
+    
+
+roadExists(Q0, F, TransitionsBST) :-
+    member(S, F),
+    route(Q0, S, _, TransitionsBST).
+
+% empty(+Representation)
+emptyCorrect(DFA) :-
+    DFA = dfaRepr(Q0, F, _, TransitionsBST, _, _, _),
+    %\+ acceptingStateReachable(Q0, AcceptingStatesBST, TransitionsBST, _).
+    \+ roadExists(Q0, F, TransitionsBST).
 
 % empty(+Automat)
 empty(A) :-
     correct(A, DFA),
-    DFA = dfaRepr(Q0, _, AcceptingStatesBST, TransitionsBST, _, _, _),
-    \+ acceptingStateReachable(Q0, AcceptingStatesBST, TransitionsBST, _).
+    emptyCorrect(DFA).
+
 
 % -----------------------------------------------------------------------------
 %                                  subsetEq
@@ -198,7 +224,7 @@ prodLists(L1, L2, Prod) :-
     prodLists(L1, L2, L1, Prod).
 
 % tfToBST(+TF, -TransitionsBST)
-statesAlphabetProdAsBST([], nil).
+statesAlphabetProdAsBST([], _, _, nil).
 statesAlphabetProdAsBST([tup(tup(S1_1, S1_2), C) | TFTail], TransitionsBST1, TransitionsBST2, TransitionsBST) :-
     statesAlphabetProdAsBST(TFTail, TransitionsBST1, TransitionsBST2, TransitionsBSTTail),
     findBST(k(S1_1, C), TransitionsBST1, S2_1),
@@ -211,10 +237,10 @@ intersectDFA(A, B, Intersection) :-
     A = dfaRepr(Q0_1, F_1, _, TransitionsBST1, Alphabet, _, States1),
     B = dfaRepr(Q0_2, F_2, _, TransitionsBST2, _, _, States2),
     Q0 = tup(Q0_1, Q0_2),
-    prodLists(F_1, F_2, F_1, FProd),
+    prodLists(F_1, F_2, FProd),
     initBST(FProd, nil, AcceptingStatesBST),
-    prodLists(States1, States2, States1, StatesProd),
-    prodLists(StatesProd, Alphabet, StatesProd, TFList),
+    prodLists(States1, States2, StatesProd),
+    prodLists(StatesProd, Alphabet, TFList),
     statesAlphabetProdAsBST(TFList, TransitionsBST1, TransitionsBST2, TransitionsBST),
 
     Intersection = dfaRepr(
@@ -229,10 +255,11 @@ subsetEq(A1, A2) :-
     DFA1 = dfaRepr(_, _, _, _, Alphabet1, _, _),
     DFA2 = dfaRepr(_, _, _, _, Alphabet2, _, _),
     allMembers(Alphabet1, Alphabet2),
-    areListsEqualLength(Alphabet2, Alphabet1),
+    allMembers(Alphabet2, Alphabet1),
     complementDFA(DFA2, DFA2Complement),
+    %trace,
     intersectDFA(DFA1, DFA2Complement, Intersection),
-    empty(Intersection).
+    emptyCorrect(Intersection).
 
 % -----------------------------------------------------------------------------
 %                                  equal
