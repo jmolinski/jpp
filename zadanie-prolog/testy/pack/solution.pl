@@ -1,6 +1,4 @@
 
-
-
 % -----------------------------------------------------------------------------
 %                                    BST 
 % -----------------------------------------------------------------------------
@@ -135,7 +133,7 @@ acceptGround([], State, dfaRepr(_, _, AcceptingStatesBST, _, _, _, _)) :-
     memberBST(State, AcceptingStatesBST).
 
 acceptGround([Letter|Tail], State, DFA) :-
-    DFA = dfaRepr(_, F, AcceptingStatesBST, TransitionsBST, _, _, _),
+    DFA = dfaRepr(_, _, _, TransitionsBST, _, _, _),
     findBST(k(State, Letter), TransitionsBST, NextState),
     acceptGround(Tail, NextState, DFA).
 
@@ -168,8 +166,7 @@ empty(A) :-
 % -----------------------------------------------------------------------------
 
 % notAcceptingStates(+States, +AcceptingStatesBST, -NotAcceptingStates)
-notAcceptingStates([], AcceptingStatesBST, []).
-
+notAcceptingStates([], _, []).
 notAcceptingStates([State|StatesTail], AcceptingStatesBST, NotAcceptingBST) :-
     memberBST(State, AcceptingStatesBST),
     notAcceptingStates(StatesTail, AcceptingStatesBST, NotAcceptingBST).
@@ -179,7 +176,7 @@ notAcceptingStates([State|StatesTail], AcceptingStatesBST, [State|NotAcceptingBS
 
 % complementDFA(+Automata, -ComplementAutomata)
 complementDFA(DFA, Complement) :-
-    DFA = dfaRepr(Q0, F, AcceptingStatesBST, TransitionsBST, Alphabet, _, States),
+    DFA = dfaRepr(Q0, _, AcceptingStatesBST, TransitionsBST, Alphabet, _, States),
     notAcceptingStates(States, AcceptingStatesBST, NotAcceptingStates),
     initBST(NotAcceptingStates, nil, NotAcceptingStatesBST),
     Complement = dfaRepr(
@@ -187,13 +184,18 @@ complementDFA(DFA, Complement) :-
         TransitionsBST, Alphabet, _, States
     ).
 
-prodLists([], [], _, []).
+% prodLists(+List1, +List2, +List1, -Product)
+prodLists(_, [], _, []).
 
-prodLists([], [_:F2Tail], L1, F_3) :-
-    prodLists(L1, F2Tail, L1, F_3).
+prodLists([], [_|F2Tail], L1, F3) :-
+    prodLists(L1, F2Tail, L1, F3).
 
-prodLists([X|F1Tail], [Y:F2Tail], L1, [tup(X, Y)|F_3BSTTail]) :-
-    prodLists(F1Tail, [Y:F2Tail], L1, F_3BSTTail).
+prodLists([X|F1Tail], [Y|F2Tail], L1, [tup(X, Y)|F3]) :-
+    prodLists(F1Tail, [Y|F2Tail], L1, F3).
+
+% prodLists(+List1, +List2, -Product)
+prodLists(L1, L2, Prod) :-
+    prodLists(L1, L2, L1, Prod).
 
 % tfToBST(+TF, -TransitionsBST)
 statesAlphabetProdAsBST([], nil).
@@ -210,7 +212,7 @@ intersectDFA(A, B, Intersection) :-
     B = dfaRepr(Q0_2, F_2, _, TransitionsBST2, _, _, States2),
     Q0 = tup(Q0_1, Q0_2),
     prodLists(F_1, F_2, F_1, FProd),
-    initBST(F_Itersect, nil, AcceptingStatesBST),
+    initBST(FProd, nil, AcceptingStatesBST),
     prodLists(States1, States2, States1, StatesProd),
     prodLists(StatesProd, Alphabet, StatesProd, TFList),
     statesAlphabetProdAsBST(TFList, TransitionsBST1, TransitionsBST2, TransitionsBST),
