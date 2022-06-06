@@ -147,39 +147,26 @@ accept(A, Word) :-
 %                                  empty 
 % -----------------------------------------------------------------------------
 
-% acceptingStateReachable(+State, +AcceptingStatesBST, +TransitionsBST, -VisitedStates)
-
-route(X, Y, R, TransitionsBST) :-
+pathExists(X, Y, TransitionsBST) :-
     X = Y;
-    route(X, Y, [X], R, TransitionsBST).
-route(X, Y, _, [drive(X,Y)], TransitionsBST) :-
-    travel(X, Y, TransitionsBST).
-route(X, Y, Visited, [drive(X,Z)|R], TransitionsBST) :-
-    travel(X, Z, TransitionsBST),
+    pathExists(X, Y, [X], TransitionsBST).
+pathExists(X, Y, _, TransitionsBST) :-
+    canReachInOneStep(X, Y, TransitionsBST).
+pathExists(X, Y, Visited, TransitionsBST) :-
+    canReachInOneStep(X, Z, TransitionsBST),
     \+ member(Z, Visited),
-    route(Z, Y,[Z|Visited], R, TransitionsBST).
-    %Z \= Y.
-travel(X, Y, TransitionsBST) :- 
+    pathExists(Z, Y,[Z|Visited], TransitionsBST).
+canReachInOneStep(X, Y, TransitionsBST) :- 
     findBST(k(X, _), TransitionsBST, Y).
 
-acceptingStateReachable(State, AcceptingStatesBST, _, []) :-
-    memberBST(State, AcceptingStatesBST).
-
-acceptingStateReachable(State, AcceptingStatesBST, TransitionsBST, [State|VisitedStates]) :-
-    \+ member(State, VisitedStates),
-    findBST(k(State, _), TransitionsBST, NextState),
-    acceptingStateReachable(NextState, AcceptingStatesBST, TransitionsBST, VisitedStates).
-    
-
-roadExists(Q0, F, TransitionsBST) :-
+pathToAcceptingExists(Q0, F, TransitionsBST) :-
     member(S, F),
-    route(Q0, S, _, TransitionsBST).
+    pathExists(Q0, S, TransitionsBST).
 
 % empty(+Representation)
 emptyCorrect(DFA) :-
     DFA = dfaRepr(Q0, F, _, TransitionsBST, _, _, _),
-    %\+ acceptingStateReachable(Q0, AcceptingStatesBST, TransitionsBST, _).
-    \+ roadExists(Q0, F, TransitionsBST).
+    \+ pathToAcceptingExists(Q0, F, TransitionsBST).
 
 % empty(+Automat)
 empty(A) :-
