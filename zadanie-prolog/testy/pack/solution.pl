@@ -91,8 +91,20 @@ tfToBST([fp(S1, C, S2) | TFTail], TransitionsBST) :-
 dfaRepresentation(TF, Q0, F, Alphabet, States, R) :-
     initBST(F, nil, AcceptingStatesBST),
     tfToBST(TF, TFBST),
-    R = dfaRepr(Q0, F, AcceptingStatesBST, TFBST, Alphabet, x, States).
+    isLanguageInfinite(Q0, F, TFBST, States, IsInfinite),
+    R = dfaRepr(Q0, F, AcceptingStatesBST, TFBST, Alphabet, IsInfinite, States).
 
+stateInInfiniteAcceptingCycle(Q0, F, State, TFBST) :-
+    pathExists(Q0, State, TFBST),
+    pathExists(State, State, TFBST),
+    pathToAcceptingExists(State, F, TFBST).
+
+infiniteAcceptingCycleExists([S|StatesTail], Q0, F, TFBST) :-
+    stateInInfiniteAcceptingCycle(Q0, F, S, TFBST);
+    infiniteAcceptingCycleExists(StatesTail, Q0, F, TFBST).
+
+isLanguageInfinite(Q0, F, TFBST, States, IsInfinite) :-
+    ( infiniteAcceptingCycleExists(States, Q0, F, TFBST) -> true ; false ).
 
 % correct(+Automat, -Reprezentacja)
 correct(dfa(TF, Q0, F), Representation) :-
@@ -159,9 +171,9 @@ pathExists(X, Y, Visited, TransitionsBST) :-
 canReachInOneStep(X, Y, TransitionsBST) :- 
     findBST(k(X, _), TransitionsBST, Y).
 
-pathToAcceptingExists(Q0, F, TransitionsBST) :-
+pathToAcceptingExists(Q, F, TransitionsBST) :-
     member(S, F),
-    pathExists(Q0, S, TransitionsBST).
+    pathExists(Q, S, TransitionsBST).
 
 % empty(+Representation)
 emptyCorrect(DFA) :-
